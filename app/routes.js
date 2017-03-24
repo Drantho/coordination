@@ -1,5 +1,19 @@
 // app/routes.js
+var RSVP = require('./models/rsvpSchema');
+
 module.exports = function(app, passport) {
+
+
+	var merge = require('merge');
+	var yelp = require('node-yelp-api');
+	var user = require("./models/rsvpSchema");
+ 
+	var options = {
+		consumer_key: process.env.YELP_Consumer_Key,
+		consumer_secret: process.env.YELP_Consumer_Secret,
+		token: process.env.YELP_Token,
+		token_secret: process.env.YELP_Token_Secret,
+	};
 
 	// =====================================
 	// HOME PAGE (with login links) ========
@@ -25,23 +39,7 @@ module.exports = function(app, passport) {
 		failureFlash : true // allow flash messages
 	}));
 
-	// =====================================
-	// SIGNUP ==============================
-	// =====================================
-	// show the signup form
-	app.get('/signup', function(req, res) {
-
-		// render the page and pass in any flash data if it exists
-		res.render('signup.handlebars', { message: req.flash('signupMessage') });
-	});
-
-	// process the signup form
-	app.post('/signup', passport.authenticate('local-signup', {
-		successRedirect : '/profile', // redirect to the secure profile section
-		failureRedirect : '/signup', // redirect back to the signup page if there is an error
-		failureFlash : true // allow flash messages
-	}));
-
+	
 	// =====================================
 	// PROFILE SECTION =========================
 	// =====================================
@@ -60,6 +58,117 @@ module.exports = function(app, passport) {
 		req.logout();
 		res.redirect('/');
 	});
+	
+	// =====================================
+    // TWITTER ROUTES ======================
+    // =====================================
+    // route for twitter authentication and login
+    app.get('/auth/twitter', passport.authenticate('twitter'));
+
+    // handle the callback after twitter has authenticated the user
+    app.get('/auth/twitter/callback',
+        passport.authenticate('twitter', {
+            successRedirect : '/profile',
+            failureRedirect : '/'
+        })
+    );
+    
+    // =====================================
+    // SEARCH RESULTS
+    // =====================================
+    
+    app.post('/', function(req, res){
+		console.log('post fires');
+		
+		var parameters = {
+			term: 'bar',
+			location: req.body.search,
+			
+		};
+		yelp.search(merge(options, parameters), function(err, response, data){
+			if(err){
+				console.log(err);
+			}
+			
+			var results = JSON.parse(data);
+			
+			var businesses = results.businesses;
+			
+			console.log(businesses);
+			
+			
+			RSVP.find ( { "location" : { $in: YelpResponseObjectToArray(businesses) } }, function(err, results){
+				if(err){
+					console.log(err);
+				}
+				
+				console.log('===============================RESULTS===========================')
+				console.log(results);
+				businesses = AddCount(businesses, results);
+		
+				res.render('index.handlebars', {
+					businesses : businesses,
+					searchText : req.body.search
+				});
+				
+				
+			} );
+			
+			
+		});
+		
+		
+		
+	});
+	
+	// ==================================================
+	// ADD DB GOING ENTRY
+	// ==================================================
+	
+    app.get('/api/:rsvpLocation', function(req, res) {
+	console.log(req.user);
+		
+		if(req.user){
+		
+			var rsvp = new RSVP({
+				user: req.user.twitter.id,
+				location : req.params.rsvpLocation,
+				date : (new Date()).toString(),
+			});
+		
+			rsvp.save();
+		
+			var response = {};
+			
+			RSVP.find({location : req.params.rsvpLocation}, function(err, count){
+				if(err){
+					console.log(err);
+				}
+				
+				response.count = count.length;
+				res.send(response);
+				
+			})
+		
+			
+		
+		} else{
+			res.redirect('/auth/twitter');
+		}
+		
+	});
+	
+	
+	app.get('/auth/twitter', passport.authenticate('twitter'));
+
+    // handle the callback after twitter has authenticated the user
+    app.get('/auth/twitter/callback',
+        passport.authenticate('twitter', {
+            successRedirect : '/profile',
+            failureRedirect : '/'
+        })
+    );
+
 };
 
 // route middleware to make sure
@@ -70,5 +179,31 @@ function isLoggedIn(req, res, next) {
 		return next();
 
 	// if they aren't redirect them to the home page
-	res.redirect('/');
+	//res.redirect('/');
+	console.log('not logged in');
 }
+
+// extract ids from yelp response
+function YelpResponseObjectToArray(businesses){
+	var names=[];
+	for(var i=0; i<businesses.length; i++){
+		names.push(businesses[i].id);
+	}
+	console.log(names);
+	return names;
+}
+
+// add count property to yelp results
+function AddCount(yelpObject, goingObject){
+	for(var i=0; i<yelpObject.length; i++){
+		yelpObject[i].count=0;
+		for(var j=0; j<goingObject.length; j++){
+			console.log(yelpObject[i].id + ' ?= ' + goingObject[j].location);
+			if(yelpObject[i].id == goingObject[j].location){
+				yelpObject[i].count ++;
+			}
+		}
+	}
+	return yelpObject;
+}
+

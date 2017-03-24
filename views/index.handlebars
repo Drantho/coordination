@@ -1,8 +1,119 @@
-<div>
-    <h1>Node Authentication</h1>
+<!-- Wide card with share menu button -->
+<style>
+.demo-card-wide.mdl-card {
+  width: 100%;
+}
+.demo-card-wide > .mdl-card__title {
+  color: #fff;
+  height: 176px;
+  background: url('http://www.skilltag.org/resources/photo_56476_20151216.jpg') center / cover;
+}
+.demo-card-wide > .mdl-card__menu {
+  color: #fff;
+}
+</style>
 
-    <p>Login or Register with:</p>
+<div class="mdl-grid">
+  <div class="mdl-cell--8-col-desktop mdl-cell--2-offset-desktop">
+  
+    <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+      <div class="mdl-card__title">
+              
+      </div>
+      <div class="mdl-card__supporting-text">
+      
+        <form action="/" method="post">
+          
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" value="{{searchText}}" name="search" id="search">
+            <label class="mdl-textfield__label" for="search">What city are you in tonight?</label>
+          </div>
 
-    <a href="/login" > Local Login</a>
-    <a href="/signup"> Local Signup</a>
+          <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+            Go
+          </button>
+        </form>
+    
+      </div>
+    </div><br>
+        
+    <style>
+
+      .demo-card-square.mdl-card {
+        width: 320px;
+        height: 320px;
+      }
+      .demo-card-square > .mdl-card__title {
+        color: #fff;
+        background: url('') bottom right 15% no-repeat #46B6AC;
+      }
+
+    </style>        
+    
+    <ul class="demo-list-control mdl-list">
+  
+      {{#each businesses}}
+
+      <li class="mdl-list__item">
+        <span class="mdl-list__item-secondary-action" style="padding-top: 25px;">
+          <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{this.id}}">
+            <input onclick="itemChecked('{{this.id}}')" type="checkbox" id="{{this.id}}" name="{{this.id}}" class="mdl-checkbox__input"/>
+          </label>
+        </span>
+        <span class="mdl-list__item-primary-content" style="padding-left: 25px; padding-top: 20px;">
+          <img src="{{this.image_url}}">
+        </span>
+        <span style="padding: 20px;">
+          <h4>{{this.name}} - <span id="{{id}}Span">{{this.count}}</span> going</h4>
+          {{this.snippet_text}}
+        </span>
+      </li>
+    
+      {{/each}}
+
+    </ul>
+
+  </div>
 </div>
+
+<script>
+  
+    function itemChecked(checkedId){
+      addRSVP(checkedId);
+      console.log("itemChecked(" + checkedId  + ") fires");
+    }
+    
+    function addRSVP(checkedId){
+      
+      console.log("addRSVP(" + checkedId  + ") fires");
+      
+      $.get('/api/' + checkedId + '?going=' + $('#' + checkedId).is(':checked'), function (response) {
+      
+        console.log("get() fires response: ");
+        console.log(response);
+		    $('#' + checkedId + 'Span').html(response.count);
+			  
+		  }
+		
+		  , "json");
+    
+    }
+    
+    
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
