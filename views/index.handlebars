@@ -23,7 +23,7 @@
       <div class="mdl-card__supporting-text">
       
         <form action="/" method="post">
-          
+          <input type="hidden" name="isLogged" id="isLogged" value="{{userName}}"/>
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
             <input class="mdl-textfield__input" type="text" value="{{searchText}}" name="search" id="search">
             <label class="mdl-textfield__label" for="search">What city are you in tonight?</label>
@@ -79,15 +79,40 @@
 <script>
   
     function itemChecked(checkedId){
-      addRSVP(checkedId);
+      
+      if($('#isLogged').val()){
+        if($('#' + checkedId).is(':checked')){
+          addRSVP(checkedId);  
+        } else{
+          removeRSVP(checkedId);
+        }
+      } else{
+        window.location = "/auth/twitter";
+      }
+        
+        
+        
+      
       console.log("itemChecked(" + checkedId  + ") fires");
+    }
+    
+    function removeRSVP(checkedId){
+      $.get('/delete/' + checkedId, function (response) {
+      
+        console.log("get() fires response: ");
+        console.log(response);
+		    $('#' + checkedId + 'Span').html(response.count);
+			  
+		  }
+		
+		  , "json");
     }
     
     function addRSVP(checkedId){
       
       console.log("addRSVP(" + checkedId  + ") fires");
       
-      $.get('/api/' + checkedId + '?going=' + $('#' + checkedId).is(':checked'), function (response) {
+      $.get('/api/' + checkedId, function (response) {
       
         console.log("get() fires response: ");
         console.log(response);

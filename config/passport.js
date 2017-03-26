@@ -23,10 +23,6 @@ module.exports = function(passport) {
         });
     });
     
-    // code for login (use('local-login', new LocalStategy))
-    // code for signup (use('local-signup', new LocalStategy))
-    // code for facebook (use('facebook', new FacebookStrategy))
-
     // =========================================================================
     // TWITTER =================================================================
     // =========================================================================
@@ -35,6 +31,7 @@ module.exports = function(passport) {
         consumerKey     : configAuth.twitterAuth.consumerKey,
         consumerSecret  : configAuth.twitterAuth.consumerSecret,
         callbackURL     : configAuth.twitterAuth.callbackURL
+        
 
     },
     function(token, tokenSecret, profile, done) {

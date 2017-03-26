@@ -68,7 +68,7 @@ module.exports = function(app, passport) {
     // handle the callback after twitter has authenticated the user
     app.get('/auth/twitter/callback',
         passport.authenticate('twitter', {
-            successRedirect : '/profile',
+            successRedirect : '/',
             failureRedirect : '/'
         })
     );
@@ -96,8 +96,13 @@ module.exports = function(app, passport) {
 			
 			console.log(businesses);
 			
+			var start = new Date();
+			start.setHours(0,0,0,0);
+
+			var end = new Date();
+			end.setHours(23,59,59,999);
 			
-			RSVP.find ( { "location" : { $in: YelpResponseObjectToArray(businesses) } }, function(err, results){
+			RSVP.find ({ $and: [ { "location" : { $in: YelpResponseObjectToArray(businesses) } }, {"date": {$gte: start, $lt: end}} ] }, function(err, results){
 				if(err){
 					console.log(err);
 				}
@@ -105,8 +110,15 @@ module.exports = function(app, passport) {
 				console.log('===============================RESULTS===========================')
 				console.log(results);
 				businesses = AddCount(businesses, results);
+				
+				try{
+					var userName = req.user.twitter.id;
+				}catch(err){
+					var userName = null;
+				}
 		
 				res.render('index.handlebars', {
+					userName : userName,
 					businesses : businesses,
 					searchText : req.body.search
 				});
@@ -125,22 +137,73 @@ module.exports = function(app, passport) {
 	// ADD DB GOING ENTRY
 	// ==================================================
 	
-    app.get('/api/:rsvpLocation', function(req, res) {
+    app.get('/api/:rsvpLocation', isLoggedIn, function(req, res) {
+	console.log(req.user);
+		
+		if(req.user){
+			
+			var addedDate = new Date();
+			
+			var rsvp = new RSVP({
+				user: req.user.twitter.id,
+				location : req.params.rsvpLocation,
+				date : addedDate
+			});
+		
+			rsvp.save();
+			
+			var start = new Date();
+			start.setHours(0,0,0,0);
+
+			var end = new Date();
+			end.setHours(23,59,59,999);
+			
+			RSVP.find({ $and: [ { "location" : req.params.rsvpLocation }, {date: {$gte: start, $lt: end}} ] }, function(err, count){
+				if(err){
+					console.log(err);
+				}
+				var response = {};
+				console.log('========================ADD to db section =======================');
+				console.log('req.params.rsvpLocation: ' + req.params.rsvpLocation + ' addedDate: ' + addedDate + ' start: ' + start + ' end: ' + end + ' add db count: ' + count)
+				response.count = count.length + 1;
+				console.log("count returned after add to db: " + response.count)
+				res.send(response);
+				
+			});
+			
+		
+		} else{
+			res.redirect('/auth/twitter');
+		}
+		
+	});
+	
+	
+	// ==================================================
+	// DELETE DB GOING ENTRY
+	// ==================================================
+	
+    app.get('/delete/:rsvpLocation', isLoggedIn, function(req, res) {
 	console.log(req.user);
 		
 		if(req.user){
 		
-			var rsvp = new RSVP({
-				user: req.user.twitter.id,
-				location : req.params.rsvpLocation,
-				date : (new Date()).toString(),
-			});
-		
-			rsvp.save();
+			RSVP.find
 		
 			var response = {};
 			
-			RSVP.find({location : req.params.rsvpLocation}, function(err, count){
+			var start = new Date();
+			start.setHours(0,0,0,0);
+
+			var end = new Date();
+			end.setHours(23,59,59,999);
+			
+			
+			RSVP.find({ $and: [ { "location" : req.params.rsvpLocation }, {date: {$gte: start, $lt: end}}, {user : req.user.twitter.id} ] }).remove().exec();
+			
+			
+			
+			RSVP.find({ $and: [ { "location" : req.params.rsvpLocation }, {date: {$gte: start, $lt: end}} ] }, function(err, count){
 				if(err){
 					console.log(err);
 				}
@@ -148,7 +211,7 @@ module.exports = function(app, passport) {
 				response.count = count.length;
 				res.send(response);
 				
-			})
+			});
 		
 			
 		
@@ -164,7 +227,8 @@ module.exports = function(app, passport) {
     // handle the callback after twitter has authenticated the user
     app.get('/auth/twitter/callback',
         passport.authenticate('twitter', {
-            successRedirect : '/profile',
+        	//callbackURL : 'https://coordination-drantho.c9users.io/callback?queryParams=sequim',
+            successRedirect : '/',
             failureRedirect : '/'
         })
     );
@@ -179,7 +243,7 @@ function isLoggedIn(req, res, next) {
 		return next();
 
 	// if they aren't redirect them to the home page
-	//res.redirect('/');
+	res.redirect('/auth/twitter');
 	console.log('not logged in');
 }
 
