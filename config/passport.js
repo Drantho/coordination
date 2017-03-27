@@ -3,6 +3,7 @@ var LocalStrategy    = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var TwitterStrategy  = require('passport-twitter').Strategy;
 
+
 // load up the user model
 var User       = require('../app/models/user');
 
@@ -28,8 +29,8 @@ module.exports = function(passport) {
     // =========================================================================
     passport.use(new TwitterStrategy({
 
-        consumerKey     : configAuth.twitterAuth.consumerKey,
-        consumerSecret  : configAuth.twitterAuth.consumerSecret,
+        consumerKey     : process.env.TWITTER_API_KEY,
+        consumerSecret  : process.env.TWITTER_API_SECRET,
         callbackURL     : configAuth.twitterAuth.callbackURL
         
 

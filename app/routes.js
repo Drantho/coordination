@@ -227,8 +227,7 @@ module.exports = function(app, passport) {
     // handle the callback after twitter has authenticated the user
     app.get('/auth/twitter/callback',
         passport.authenticate('twitter', {
-        	//callbackURL : 'https://coordination-drantho.c9users.io/callback?queryParams=sequim',
-            successRedirect : '/',
+            successRedirect : '/fred',
             failureRedirect : '/'
         })
     );
@@ -270,4 +269,3 @@ function AddCount(yelpObject, goingObject){
 	}
 	return yelpObject;
 }
-
