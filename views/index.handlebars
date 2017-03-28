@@ -32,6 +32,7 @@
           <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
             Go
           </button>
+          <div style="position: absolute; right: 15px; bottom: 25px;">search powered by <a href="http://www.yelp.com"><img src="https://s3-media2.fl.yelpcdn.com/assets/srv0/styleguide/1ea40efd80f5/assets/img/brand_guidelines/yelp_fullcolor.png" style="height: 50px; position: relative; top: -5px"></a href></div>
         </form>
     
       </div>
@@ -57,7 +58,7 @@
       <li class="mdl-list__item">
         <span class="mdl-list__item-secondary-action" style="padding-top: 25px;">
           <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{this.id}}">
-            <input onclick="itemChecked('{{this.id}}')" type="checkbox" id="{{this.id}}" name="{{this.id}}" class="mdl-checkbox__input"/>
+            <input onclick="itemChecked('{{this.id}}')" type="checkbox" id="{{this.id}}" name="{{this.id}}" class="mdl-checkbox__input" {{#if this.going}}checked{{/if}}/>
           </label>
         </span>
         <span class="mdl-list__item-primary-content" style="padding-left: 25px; padding-top: 20px;">
@@ -87,7 +88,7 @@
           removeRSVP(checkedId);
         }
       } else{
-        window.location = "/auth/twitter";
+        window.location = "/unauthenticatedSearch/" + $('#search').val();
       }
         
         
