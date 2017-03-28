@@ -6,7 +6,7 @@ module.exports = {
 	'twitterAuth' : {
 		'consumerKey' 		: process.env.TWITTER_API_KEY,
 		'consumerSecret' 	: process.env.TWITTER_API_SECRET,
-		'callbackURL' 		: 'https://immense-retreat-13727.herokuapp.com//auth/twitter/callback'
+		'callbackURL' 		: 'https://immense-retreat-13727.herokuapp.com/auth/twitter/callback'
 	},
 
 };      
